@@ -1,7 +1,7 @@
-import { Address, beginCell, Cell, Dictionary, toNano } from 'ton-core';
-import { mnemonicToWalletKey, sign } from 'ton-crypto';
+import { Address, Cell, Dictionary, beginCell, toNano } from "@ton/core";
+import { mnemonicToWalletKey, sign } from "@ton/crypto";
+import { TonClient } from "@ton/ton";
 import * as crypto from 'crypto';
-import { TonClient } from 'ton';
 
 async function main() {
     let internalMessages:Cell[] = [];
@@ -16,8 +16,10 @@ async function main() {
         const internalMessage = beginCell().
             storeUint(0x18, 6). // bounce
             storeAddress(walletAddress).
-            storeCoins(toNano('0.001')).
-            storeUint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1).
+            storeCoins(toNano('0.01')).
+            storeUint(0, 1 + 4 + 4 + 64 + 32).
+            storeBit(0). // We do not have State Init
+            storeBit(1). // We store Message Body as a reference
             storeRef(internalMessageBody). // Store Message Body Init as a reference
             endCell();
 
@@ -29,7 +31,7 @@ async function main() {
         const internalMessage = internalMessages[i]; // get our message from an array
         dictionary.set(i, internalMessage); // save the message in the dictionary
     }
-    
+
     const queryID = crypto.randomBytes(4).readUint32BE(); // create a random uint32 number, 4 bytes = 32 bits
     const now = Math.floor(Date.now() / 1000); // get current timestamp
     const timeout = 120; // timeout for message expiration, 120 seconds = 2 minutes
@@ -63,6 +65,7 @@ async function main() {
     const highloadWalletAddress = Address.parse('put your high-load wallet address');
 
     const signature = sign(toSign.endCell().hash(), highloadKeyPair.secretKey); // get the hash of our message to wallet smart contract and sign it to get signature
+
     const body = beginCell().
         storeBuffer(signature). // store signature
         storeBuilder(toSign). // store our message
@@ -86,5 +89,5 @@ async function main() {
 
     client.sendFile(externalMessage.toBoc());
 }
-  
-main().finally(() => console.log('Exiting...'));
+
+main().finally(() => console.log("Exiting..."));

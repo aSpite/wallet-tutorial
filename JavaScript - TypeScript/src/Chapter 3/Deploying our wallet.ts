@@ -1,10 +1,11 @@
-import { mnemonicToWalletKey, mnemonicNew, sign } from "ton-crypto";
-import { compileFunc } from '@ton-community/func-js';
+import { compileFunc } from "@ton-community/func-js";
+import { Address, Cell, beginCell, toNano } from "@ton/core";
+import { mnemonicNew, mnemonicToWalletKey, sign } from "@ton/crypto";
+import { TonClient } from "@ton/ton";
 import fs from 'fs'; // we use fs for reading content of files
-import { Address, beginCell, Cell, toNano } from "ton-core";
-import { TonClient } from "ton";
 
 async function main() {
+    // const mnemonicArray = 'put your mnemonic'.split(' ') // get our mnemonic as array
     const mnemonicArray = await mnemonicNew(24); // 24 is the number of words in a seed phrase
     const keyPair = await mnemonicToWalletKey(mnemonicArray); // extract private and public keys from mnemonic
     console.log(mnemonicArray) // if we want, we can print our mnemonic
@@ -12,19 +13,19 @@ async function main() {
     const subWallet = 698983191;
 
     const result = await compileFunc({
-    targets: ['wallet_v3.fc'], // targets of your project
-    sources: {
-        "stdlib.fc": fs.readFileSync('./src/stdlib.fc', { encoding: 'utf-8' }),
-        "wallet_v3.fc": fs.readFileSync('./src/wallet_v3.fc', { encoding: 'utf-8' }),
-    }
+        targets: ['wallet_v3.fc'], // targets of your project
+        sources: {
+            "stdlib.fc": fs.readFileSync('./src/stdlib.fc', { encoding: 'utf-8' }),
+            "wallet_v3.fc": fs.readFileSync('./src/wallet_v3.fc', { encoding: 'utf-8' }),
+        }
     });
 
     if (result.status === 'error') {
-    console.error(result.message)
-    return;
+        console.error(result.message)
+        return;
     }
 
-    const codeCell = Cell.fromBoc(Buffer.from(result.codeBoc, "base64"))[0];
+    const codeCell = Cell.fromBoc(Buffer.from(result.codeBoc, "base64"))[0]; // get buffer from base64 encoded BOC and get cell from this buffer
 
     // now we have base64 encoded BOC with compiled code in result.codeBoc
     console.log('Code BOC: ' + result.codeBoc);
@@ -50,33 +51,33 @@ async function main() {
     console.log(`Contract address: ${contractAddress.toString()}`); // Output contract address to console
 
     const internalMessageBody = beginCell().
-        storeUint(0, 32).
-        storeStringTail("Hello, TON!").
-        endCell();
+    storeUint(0, 32).
+    storeStringTail("Hello, TON!").
+    endCell();
 
     const internalMessage = beginCell().
-        storeUint(0x10, 6). // no bounce
-        storeAddress(Address.parse("put your first wallet address from were you sent 0.1 TON")).
-        storeCoins(toNano("0.03")).
-        storeUint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1). // We store 1 that means we have body as a reference
-        storeRef(internalMessageBody).
-        endCell();
+    storeUint(0x10, 6). // no bounce
+    storeAddress(Address.parse("put your first wallet address from were you sent 0.1 TON")).
+    storeCoins(toNano("0.03")).
+    storeUint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1). // We store 1 that means we have body as a reference
+    storeRef(internalMessageBody).
+    endCell();
 
     // transaction for our wallet
     const toSign = beginCell().
-        storeUint(subWallet, 32).
-        storeUint(Math.floor(Date.now() / 1e3) + 60, 32).
-        storeUint(0, 32). // We put seqno = 0, because after deploying wallet will store 0 as seqno
-        storeUint(3, 8).
-        storeRef(internalMessage);
+    storeUint(subWallet, 32).
+    storeUint(Math.floor(Date.now() / 1e3) + 60, 32).
+    storeUint(0, 32). // We put seqno = 0, because after deploying wallet will store 0 as seqno
+    storeUint(3, 8).
+    storeRef(internalMessage);
 
     const signature = sign(toSign.endCell().hash(), keyPair.secretKey);
     const body = beginCell().
-        storeBuffer(signature).
-        storeBuilder(toSign).
-        endCell();
+    storeBuffer(signature).
+    storeBuilder(toSign).
+    endCell();
 
-    const external = beginCell().
+    const externalMessage = beginCell().
         storeUint(0b10, 2). // indicate that it is an incoming external transaction
         storeUint(0, 2). // src -> addr_none
         storeAddress(contractAddress).
@@ -92,8 +93,8 @@ async function main() {
         endpoint: "https://toncenter.com/api/v2/jsonRPC",
         apiKey: "put your api key" // you can get an api key from @tonapibot bot in Telegram
     });
-
-    client.sendFile(external.toBoc());
+        
+    client.sendFile(externalMessage.toBoc());
 }
 
 main().finally(() => console.log("Exiting..."));

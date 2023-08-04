@@ -20,6 +20,7 @@ import (
 )
 
 func main() {
+	// mnemonic := strings.Split("put your mnemonic", " ") // get our mnemonic as array
 	mnemonic := wallet.NewSeed() // get new mnemonic
 
 	// The following three lines will extract the private key using the mnemonic phrase. We will not go into cryptographic details. It has all been implemented in the tonutils-go library, but it immediately returns the finished object of the wallet with the address and ready methods. So we’ll have to write the lines to get the key separately. Goland IDE will automatically import all required libraries (crypto, pbkdf2 and others).
@@ -33,7 +34,7 @@ func main() {
 	log.Println(publicKey)                               // print publicKey so that at this stage the compiler does not complain that we do not use our variable
 	log.Println(mnemonic)                                // if we want, we can print our mnemonic
 
-	var subWallet uint64 = 698983191 // we use 32 bit for subwallet_id
+	var subWallet uint64 = 698983191
 
 	base64BOC := "te6ccgEBCAEAhgABFP8A9KQT9LzyyAsBAgEgAgMCAUgEBQCW8oMI1xgg0x/TH9MfAvgju/Jj7UTQ0x/TH9P/0VEyuvKhUUS68qIE+QFUEFX5EPKj+ACTINdKltMH1AL7AOgwAaTIyx/LH8v/ye1UAATQMAIBSAYHABe7Oc7UTQ0z8x1wv/gAEbjJftRNDXCx+A==" // save our base64 encoded output from compiler to variable
 	codeCellBytes, _ := base64.StdEncoding.DecodeString(base64BOC)                                                                                                                                                      // decode base64 in order to get byte array
@@ -43,9 +44,10 @@ func main() {
 	}
 
 	log.Println("Hash:", base64.StdEncoding.EncodeToString(codeCell.Hash())) // get the hash of our cell, encode it to base64 because it has []byte type and output to the terminal
+
 	dataCell := cell.BeginCell().
 		MustStoreUInt(0, 32).           // Seqno
-		MustStoreUInt(subWallet, 32).   // Subwallet ID
+		MustStoreUInt(698983191, 32).   // Subwallet ID
 		MustStoreSlice(publicKey, 256). // Public Key
 		EndCell()
 
@@ -60,7 +62,7 @@ func main() {
 		EndCell()
 
 	contractAddress := address.NewAddress(0, 0, stateInit.Hash()) // get the hash of stateInit to get the address of our smart contract in workchain with ID 0
-	log.Println("Contract address:", contractAddress.String())   // Output contract address to console
+	log.Println("Contract address:", contractAddress.String())    // Output contract address to console
 
 	internalMessageBody := cell.BeginCell().
 		MustStoreUInt(0, 32).
@@ -103,7 +105,7 @@ func main() {
 
 	connection := liteclient.NewConnectionPool()
 	configUrl := "https://ton-blockchain.github.io/global.config.json"
-	err := connection.AddConnectionsFromConfigUrl(context.Background(), configUrl)
+	err = connection.AddConnectionsFromConfigUrl(context.Background(), configUrl)
 	if err != nil {
 		panic(err)
 	}

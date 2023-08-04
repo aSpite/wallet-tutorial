@@ -1,6 +1,7 @@
-import { TonClient } from "ton";
-import { Address, beginCell, toNano } from "ton-core";
-import { mnemonicToWalletKey, sign } from "ton-crypto";
+import { Address, beginCell, toNano } from "@ton/core";
+import { mnemonicToWalletKey, sign } from "@ton/crypto";
+import { TonClient } from "@ton/ton";
+
 
 async function main() {
     const destinationAddress = Address.parse("put your wallet where you want to send NFT");
@@ -24,7 +25,7 @@ async function main() {
         storeBit(1). // we store forward_payload as a reference
         storeRef(forwardPayload). // store forward_payload as a reference
         endCell();
-    
+
     const internalMessage = beginCell().
         storeUint(0x18, 6). // bounce
         storeAddress(nftAddress).
@@ -32,7 +33,7 @@ async function main() {
         storeUint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1). // We store 1 that means we have body as a reference
         storeRef(transferNftBody).
         endCell();
-    
+
     const client = new TonClient({
         endpoint: "https://toncenter.com/api/v2/jsonRPC",
         apiKey: "put your api key" // you can get an api key from @tonapibot bot in Telegram
@@ -72,5 +73,5 @@ async function main() {
     
     client.sendFile(externalMessage.toBoc());
 }
-  
+
 main().finally(() => console.log("Exiting..."));

@@ -1,8 +1,8 @@
-import { compileFunc } from '@ton-community/func-js';
+import { compileFunc } from "@ton-community/func-js";
+import { Address, Cell, beginCell, toNano } from "@ton/core";
+import { mnemonicToWalletKey, sign } from "@ton/crypto";
+import { TonClient } from "@ton/ton";
 import fs from 'fs'
-import { TonClient } from 'ton';
-import { Address, beginCell, Cell, toNano } from 'ton-core';
-import { mnemonicToWalletKey, sign } from 'ton-crypto';
 
 async function main() {
     const result = await compileFunc({
@@ -12,18 +12,18 @@ async function main() {
             'highload_wallet.fc': fs.readFileSync('./src/highload_wallet.fc', { encoding: 'utf-8' }),
         }
     });
-
+    
     if (result.status === 'error') {
     console.error(result.message)
     return;
     }
-
+    
     const codeCell = Cell.fromBoc(Buffer.from(result.codeBoc, 'base64'))[0];
-
+    
     // now we have base64 encoded BOC with compiled code in result.codeBoc
     console.log('Code BOC: ' + result.codeBoc);
     console.log('\nHash: ' + codeCell.hash().toString('base64')); // get the hash of cell and convert in to base64 encoded string
-    
+
     const highloadMnemonicArray = 'put your mnemonic that you have generated and saved before'.split(' ');
     const highloadKeyPair = await mnemonicToWalletKey(highloadMnemonicArray); // extract private and public keys from mnemonic
 
@@ -53,16 +53,16 @@ async function main() {
         endCell();
 
     const internalMessage = beginCell().
-    storeUint(0x10, 6). // no bounce
-    storeAddress(contractAddress).
-    storeCoins(toNano('0.01')).
-    storeUint(0, 1 + 4 + 4 + 64 + 32).
-    storeBit(1). // We have State Init
-    storeBit(1). // We store State Init as a reference
-    storeRef(stateInit). // Store State Init as a reference
-    storeBit(1). // We store Message Body as a reference
-    storeRef(internalMessageBody). // Store Message Body Init as a reference
-    endCell();
+        storeUint(0x10, 6). // no bounce
+        storeAddress(contractAddress).
+        storeCoins(toNano('0.01')).
+        storeUint(0, 1 + 4 + 4 + 64 + 32).
+        storeBit(1). // We have State Init
+        storeBit(1). // We store State Init as a reference
+        storeRef(stateInit). // Store State Init as a reference
+        storeBit(1). // We store Message Body as a reference
+        storeRef(internalMessageBody). // Store Message Body Init as a reference
+        endCell();
 
 
     const client = new TonClient({
@@ -101,8 +101,7 @@ async function main() {
         storeRef(body). // Store Message Body as a reference
         endCell();
 
-
     client.sendFile(external.toBoc());
 }
-  
-main().finally(() => console.log('Exiting...'));
+
+main().finally(() => console.log("Exiting..."));

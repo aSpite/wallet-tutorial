@@ -3,7 +3,7 @@ module main
 go 1.20
 
 require (
-	github.com/xssnick/tonutils-go v1.6.2
+	github.com/xssnick/tonutils-go v1.7.4
 	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064
 )
 

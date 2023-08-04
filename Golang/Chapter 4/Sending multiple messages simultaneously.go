@@ -44,10 +44,10 @@ func main() {
 			MustStoreUInt(0, 1+4+4+64+32+1)
 
 		/*
-		   	At this stage, it is not clear if we will have a message body. 
-			So put a bit only for stateInit, and if we have a comment, in means 
-			we have a body message. In that case, set the bit to 1 and store the 
-			body as a reference.
+		   At this stage, it is not clear if we will have a message body.
+		   So put a bit only for stateInit, and if we have a comment, in means
+		   we have a body message. In that case, set the bit to 1 and store the
+		   body as a reference.
 		*/
 
 		if internalMessagesComment[i] != "" {
@@ -63,8 +63,7 @@ func main() {
 			/*
 			   Since we do not have a message body, we indicate that
 			   the message body is in this message, but do not write it,
-			   which means it is absent. We could write bit 1 and store
-			   Message Body as an empty cell (beginCell().endCell())
+			   which means it is absent. In that case, just set the bit to 0.
 			*/
 			internalMessage.MustStoreBoolBit(false)
 		}
@@ -81,8 +80,13 @@ func main() {
 	}
 	client := ton.NewAPIClient(connection)
 
-	highloadMnemonicArray := strings.Split("put your mnemonic", " ") // word1 word2 word3
-	mac := hmac.New(sha512.New, []byte(strings.Join(highloadMnemonicArray, " ")))
+	mnemonic := strings.Split("put your mnemonic", " ") // word1 word2 word3
+	// The following three lines will extract the private key using the mnemonic phrase.
+	// We will not go into cryptographic details. In the library tonutils-go, it is all implemented,
+	// but it immediately returns the finished object of the wallet with the address and ready-made methods.
+	// So we’ll have to write the lines to get the key separately. Goland IDE will automatically import
+	// all required libraries (crypto, pbkdf2 and others).
+	mac := hmac.New(sha512.New, []byte(strings.Join(mnemonic, " ")))
 	hash := mac.Sum(nil)
 	k := pbkdf2.Key(hash, []byte("TON default seed"), 100000, 32, sha512.New) // In TON libraries "TON default seed" is used as salt when getting keys
 	// 32 is a key len

@@ -22,7 +22,7 @@ import (
 
 func main() {
 	var internalMessages []*cell.Cell
-	wallletAddress := address.MustParseAddr("Eput your wallet address from which you deployed high-load wallet")
+	wallletAddress := address.MustParseAddr("put your wallet address from which you deployed high-load wallet")
 
 	for i := 0; i < 12; i++ {
 		comment := fmt.Sprintf("Hello, TON! #%d", i)

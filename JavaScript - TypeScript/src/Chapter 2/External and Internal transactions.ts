@@ -1,6 +1,6 @@
-import { beginCell, toNano, Address, TonClient } from "ton";
-import { mnemonicToWalletKey } from "ton-crypto";
-import { sign } from 'ton-crypto';
+import { Address, beginCell, toNano } from "@ton/core";
+import { mnemonicToWalletKey, sign } from "@ton/crypto";
+import { TonClient } from "@ton/ton";
 
 async function main() {
     let internalMessageBody = beginCell().
@@ -32,11 +32,11 @@ async function main() {
         endpoint: "https://toncenter.com/api/v2/jsonRPC",
         apiKey: "put your api key" // you can get an api key from @tonapibot bot in Telegram
     });
-    
+
     const mnemonic = 'put your mnemonic'; // word1 word2 word3
     let getMethodResult = await client.runMethod(walletAddress, "seqno"); // run "seqno" GET method from your wallet contract
     let seqno = getMethodResult.stack.readNumber(); // get seqno from response
-    
+
     const mnemonicArray = mnemonic.split(' '); // get array from string
     const keyPair = await mnemonicToWalletKey(mnemonicArray); // get Secret and Public keys from mnemonic 
 

@@ -1,5 +1,5 @@
-import { TonClient } from "ton";
-import { Address } from "ton-core";
+import { TonClient } from '@ton/ton';
+import { Address } from '@ton/core';
 
 async function main() {
     const client = new TonClient({
