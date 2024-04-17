@@ -23,11 +23,11 @@ async function main() {
     for (let index = 0; index < internalMessagesAmount.length; index++) {
         const amount = internalMessagesAmount[index];
         
-        let internalMessage = beginCell().
-            storeUint(0x18, 6). // bounce
-            storeAddress(Address.parse(destinationAddresses[index])).
-            storeCoins(toNano(amount)).
-            storeUint(0, 1 + 4 + 4 + 64 + 32 + 1);
+        let internalMessage = beginCell()
+            .storeUint(0x18, 6) // bounce
+            .storeAddress(Address.parse(destinationAddresses[index]))
+            .storeCoins(toNano(amount))
+            .storeUint(0, 1 + 4 + 4 + 64 + 32 + 1);
             
         /*
             At this stage, it is not clear if we will have a message body. 
@@ -39,10 +39,10 @@ async function main() {
         if(internalMessagesComment[index] != "") {
             internalMessage.storeBit(1) // we store Message Body as a reference
 
-            let internalMessageBody = beginCell().
-            storeUint(0, 32).
-            storeStringTail(internalMessagesComment[index]).
-            endCell();
+            let internalMessageBody = beginCell()
+                .storeUint(0, 32)
+                .storeStringTail(internalMessagesComment[index])
+                .endCell();
 
             internalMessage.storeRef(internalMessageBody);
         } 
@@ -70,10 +70,10 @@ async function main() {
     const mnemonicArray = mnemonic.split(' '); // get array from string
     const keyPair = await mnemonicToWalletKey(mnemonicArray); // get Secret and Public keys from mnemonic 
 
-    let toSign = beginCell().
-    storeUint(698983191, 32). // subwallet_id
-    storeUint(Math.floor(Date.now() / 1e3) + 60, 32). // Transaction expiration time, +60 = 1 minute
-    storeUint(seqno, 32); // store seqno
+    let toSign = beginCell()
+        .storeUint(698983191, 32) // subwallet_id
+        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Transaction expiration time, +60 = 1 minute
+        .storeUint(seqno, 32); // store seqno
     // Do not forget that if we use Wallet V4, we need to add .storeUint(0, 8) 
     
     for (let index = 0; index < internalMessages.length; index++) {
@@ -84,20 +84,20 @@ async function main() {
 
     let signature = sign(toSign.endCell().hash(), keyPair.secretKey); // get the hash of our message to wallet smart contract and sign it to get signature
 
-    let body = beginCell().
-        storeBuffer(signature). // store signature
-        storeBuilder(toSign). // store our message
-        endCell();
+    let body = beginCell()
+        .storeBuffer(signature) // store signature
+        .storeBuilder(toSign) // store our message
+        .endCell();
 
-    let externalMessage = beginCell().
-        storeUint(0b10, 2). // ext_in_msg_info$10
-        storeUint(0, 2). // src -> addr_none
-        storeAddress(walletAddress). // Destination address
-        storeCoins(0). // Import Fee
-        storeBit(0). // No State Init
-        storeBit(1). // We store Message Body as a reference
-        storeRef(body). // Store Message Body as a reference
-        endCell();
+    let externalMessage = beginCell()
+        .storeUint(0b10, 2) // ext_in_msg_info$10
+        .storeUint(0, 2) // src -> addr_none
+        .storeAddress(walletAddress) // Destination address
+        .storeCoins(0) // Import Fee
+        .storeBit(0) // No State Init
+        .storeBit(1) // We store Message Body as a reference
+        .storeRef(body) // Store Message Body as a reference
+        .endCell();
 
     client.sendFile(externalMessage.toBoc());
 }

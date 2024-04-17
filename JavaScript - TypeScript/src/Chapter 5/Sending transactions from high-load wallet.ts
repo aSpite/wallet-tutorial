@@ -8,20 +8,20 @@ async function main() {
     const walletAddress = Address.parse('put your wallet address from which you deployed high-load wallet');
 
     for (let i = 0; i < 12; i++) {
-        const internalMessageBody = beginCell().
-            storeUint(0, 32).
-            storeStringTail(`Hello, TON! #${i}`).
-            endCell();
+        const internalMessageBody = beginCell()
+            .storeUint(0, 32)
+            .storeStringTail(`Hello, TON! #${i}`)
+            .endCell();
 
-        const internalMessage = beginCell().
-            storeUint(0x18, 6). // bounce
-            storeAddress(walletAddress).
-            storeCoins(toNano('0.01')).
-            storeUint(0, 1 + 4 + 4 + 64 + 32).
-            storeBit(0). // We do not have State Init
-            storeBit(1). // We store Message Body as a reference
-            storeRef(internalMessageBody). // Store Message Body Init as a reference
-            endCell();
+        const internalMessage = beginCell()
+            .storeUint(0x18, 6) // bounce
+            .storeAddress(walletAddress)
+            .storeCoins(toNano('0.01'))
+            .storeUint(0, 1 + 4 + 4 + 64 + 32)
+            .storeBit(0) // We do not have State Init
+            .storeBit(1) // We store Message Body as a reference
+            .storeRef(internalMessageBody) // Store Message Body Init as a reference
+            .endCell();
 
         internalMessages.push(internalMessage);
     }
@@ -38,12 +38,12 @@ async function main() {
     const finalQueryID = (BigInt(now + timeout) << 32n) + BigInt(queryID); // get our final query_id
     console.log(finalQueryID); // print query_id. With this query_id we can call GET method to check if our request has been processed
 
-    const toSign = beginCell().
-        storeUint(698983191, 32). // subwallet_id
-        storeUint(finalQueryID, 64).
+    const toSign = beginCell()
+        .storeUint(698983191, 32) // subwallet_id
+        .storeUint(finalQueryID, 64)
         // Here we create our own method that will save the 
         // transaction mode and a reference to the transaction
-        storeDict(dictionary, Dictionary.Keys.Int(16), {
+        .storeDict(dictionary, Dictionary.Keys.Int(16), {
             serialize: (src, buidler) => {
                 buidler.storeUint(3, 8); // save transaction mode, mode = 3
                 buidler.storeRef(src); // save transaction as reference
@@ -51,10 +51,10 @@ async function main() {
             // We won't actually use this, but this method 
             // will help to read our dictionary that we saved
             parse: (src) => {
-                let cell = beginCell().
-                    storeUint(src.loadUint(8), 8).
-                    storeRef(src.loadRef()).
-                    endCell();
+                let cell = beginCell()
+                    .storeUint(src.loadUint(8), 8)
+                    .storeRef(src.loadRef())
+                    .endCell();
                 return cell;
             }
         }
@@ -66,20 +66,20 @@ async function main() {
 
     const signature = sign(toSign.endCell().hash(), highloadKeyPair.secretKey); // get the hash of our message to wallet smart contract and sign it to get signature
 
-    const body = beginCell().
-        storeBuffer(signature). // store signature
-        storeBuilder(toSign). // store our message
-        endCell();
+    const body = beginCell()
+        .storeBuffer(signature) // store signature
+        .storeBuilder(toSign) // store our message
+        .endCell();
 
-    const externalMessage = beginCell().
-        storeUint(0b10, 2). // indicate that it is an incoming external transaction
-        storeUint(0, 2). // src -> addr_none
-        storeAddress(highloadWalletAddress).
-        storeCoins(0). // Import fee
-        storeBit(0). // We do not have State Init
-        storeBit(1). // We store Message Body as a reference
-        storeRef(body). // Store Message Body as a reference
-        endCell();
+    const externalMessage = beginCell()
+        .storeUint(0b10, 2) // indicate that it is an incoming external transaction
+        .storeUint(0, 2) // src -> addr_none
+        .storeAddress(highloadWalletAddress)
+        .storeCoins(0) // Import fee
+        .storeBit(0) // We do not have State Init
+        .storeBit(1) // We store Message Body as a reference
+        .storeRef(body) // Store Message Body as a reference
+        .endCell();
 
     // We do not need a key here as we will be sending 1 request per second
     const client = new TonClient({

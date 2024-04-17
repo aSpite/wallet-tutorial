@@ -31,63 +31,63 @@ async function main() {
     console.log('Code BOC: ' + result.codeBoc);
     console.log('\nHash: ' + codeCell.hash().toString('base64')); // get the hash of cell and convert in to base64 encoded string. We will need it further
 
-    const dataCell = beginCell().
-        storeUint(0, 32). // Seqno
-        storeUint(698983191, 32). // Subwallet ID
-        storeBuffer(keyPair.publicKey). // Public Key
-        endCell();
+    const dataCell = beginCell()
+        .storeUint(0, 32) // Seqno
+        .storeUint(698983191, 32) // Subwallet ID
+        .storeBuffer(keyPair.publicKey) // Public Key
+        .endCell();
 
-    const stateInit = beginCell().
-        storeBit(0). // No split_depth
-        storeBit(0). // No special
-        storeBit(1). // We have code
-        storeRef(codeCell).
-        storeBit(1). // We have data
-        storeRef(dataCell).
-        storeBit(0). // No library
-        endCell();
+    const stateInit = beginCell()
+        .storeBit(0) // No split_depth
+        .storeBit(0) // No special
+        .storeBit(1) // We have code
+        .storeRef(codeCell)
+        .storeBit(1) // We have data
+        .storeRef(dataCell)
+        .storeBit(0) // No library
+        .endCell();
 
     const contractAddress = new Address(0, stateInit.hash()); // get the hash of stateInit to get the address of our smart contract in workchain with ID 0
     console.log(`Contract address: ${contractAddress.toString()}`); // Output contract address to console
 
-    const internalMessageBody = beginCell().
-    storeUint(0, 32).
-    storeStringTail("Hello, TON!").
-    endCell();
+    const internalMessageBody = beginCell()
+        .storeUint(0, 32)
+        .storeStringTail("Hello, TON!")
+        .endCell();
 
-    const internalMessage = beginCell().
-    storeUint(0x10, 6). // no bounce
-    storeAddress(Address.parse("put your first wallet address from were you sent 0.1 TON")).
-    storeCoins(toNano("0.03")).
-    storeUint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1). // We store 1 that means we have body as a reference
-    storeRef(internalMessageBody).
-    endCell();
+    const internalMessage = beginCell()
+        .storeUint(0x10, 6) // no bounce
+        .storeAddress(Address.parse("put your first wallet address from were you sent 0.1 TON"))
+        .storeCoins(toNano("0.03"))
+        .storeUint(1, 1 + 4 + 4 + 64 + 32 + 1 + 1) // We store 1 that means we have body as a reference
+        .storeRef(internalMessageBody)
+        .endCell();
 
     // transaction for our wallet
-    const toSign = beginCell().
-    storeUint(subWallet, 32).
-    storeUint(Math.floor(Date.now() / 1e3) + 60, 32).
-    storeUint(0, 32). // We put seqno = 0, because after deploying wallet will store 0 as seqno
-    storeUint(3, 8).
-    storeRef(internalMessage);
+    const toSign = beginCell()
+        .storeUint(subWallet, 32)
+        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32)
+        .storeUint(0, 32) // We put seqno = 0, because after deploying wallet will store 0 as seqno
+        .storeUint(3, 8)
+        .storeRef(internalMessage);
 
     const signature = sign(toSign.endCell().hash(), keyPair.secretKey);
-    const body = beginCell().
-    storeBuffer(signature).
-    storeBuilder(toSign).
-    endCell();
+    const body = beginCell()
+        .storeBuffer(signature)
+        .storeBuilder(toSign)
+        .endCell();
 
-    const externalMessage = beginCell().
-        storeUint(0b10, 2). // indicate that it is an incoming external transaction
-        storeUint(0, 2). // src -> addr_none
-        storeAddress(contractAddress).
-        storeCoins(0). // Import fee
-        storeBit(1). // We have State Init
-        storeBit(1). // We store State Init as a reference
-        storeRef(stateInit). // Store State Init as a reference
-        storeBit(1). // We store Message Body as a reference
-        storeRef(body). // Store Message Body as a reference
-        endCell();
+    const externalMessage = beginCell()
+        .storeUint(0b10, 2) // indicate that it is an incoming external transaction
+        .storeUint(0, 2) // src -> addr_none
+        .storeAddress(contractAddress)
+        .storeCoins(0) // Import fee
+        .storeBit(1) // We have State Init
+        .storeBit(1) // We store State Init as a reference
+        .storeRef(stateInit) // Store State Init as a reference
+        .storeBit(1) // We store Message Body as a reference
+        .storeRef(body) // Store Message Body as a reference
+        .endCell();
 
     const client = new TonClient({
         endpoint: "https://toncenter.com/api/v2/jsonRPC",
