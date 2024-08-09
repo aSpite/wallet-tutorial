@@ -8,7 +8,7 @@ async function main() {
     const internalMessagesComment = [
         "Hello, TON! #1",
         "Hello, TON! #2",
-        "", // Let's leave the third transaction without comment
+        "", // Let's leave the third message without comment
         "Hello, TON! #4" 
     ]
     const destinationAddresses = [
@@ -72,13 +72,13 @@ async function main() {
 
     let toSign = beginCell()
         .storeUint(698983191, 32) // subwallet_id
-        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Transaction expiration time, +60 = 1 minute
+        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Message expiration time, +60 = 1 minute
         .storeUint(seqno, 32); // store seqno
     // Do not forget that if we use Wallet V4, we need to add .storeUint(0, 8) 
     
     for (let index = 0; index < internalMessages.length; index++) {
         const internalMessage = internalMessages[index];
-        toSign.storeUint(3, 8) // store mode of our internal transaction
+        toSign.storeUint(3, 8) // store mode of our internal message
         toSign.storeRef(internalMessage) // store our internalMessage as a reference
     }
 

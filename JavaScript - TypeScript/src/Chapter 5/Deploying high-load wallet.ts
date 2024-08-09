@@ -76,10 +76,10 @@ async function main() {
     const getMethodResult = await client.runMethod(walletAddress, 'seqno'); // run "seqno" GET method from your wallet contract
     const seqno = getMethodResult.stack.readNumber(); // get seqno from response
 
-    // transaction for our wallet
+    // message for our wallet
     const toSign = beginCell()
         .storeUint(698983191, 32) // subwallet_id
-        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Transaction expiration time, +60 = 1 minute
+        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Message expiration time, +60 = 1 minute
         .storeUint(seqno, 32) // store seqno
         // Do not forget that if we use Wallet V4, we need to add .storeUint(0, 8) 
         .storeUint(3, 8)
@@ -92,7 +92,7 @@ async function main() {
         .endCell();
 
     const external = beginCell()
-        .storeUint(0b10, 2) // indicate that it is an incoming external transaction
+        .storeUint(0b10, 2) // indicate that it is an incoming external message
         .storeUint(0, 2) // src -> addr_none
         .storeAddress(walletAddress)
         .storeCoins(0) // Import fee

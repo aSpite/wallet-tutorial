@@ -63,7 +63,7 @@ async function main() {
         .storeRef(internalMessageBody)
         .endCell();
 
-    // transaction for our wallet
+    // message for our wallet
     const toSign = beginCell()
         .storeUint(subWallet, 32)
         .storeUint(Math.floor(Date.now() / 1e3) + 60, 32)
@@ -78,7 +78,7 @@ async function main() {
         .endCell();
 
     const externalMessage = beginCell()
-        .storeUint(0b10, 2) // indicate that it is an incoming external transaction
+        .storeUint(0b10, 2) // indicate that it is an incoming external message
         .storeUint(0, 2) // src -> addr_none
         .storeAddress(contractAddress)
         .storeCoins(0) // Import fee

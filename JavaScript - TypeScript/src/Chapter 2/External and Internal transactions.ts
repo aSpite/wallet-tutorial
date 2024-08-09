@@ -42,9 +42,9 @@ async function main() {
 
     let toSign = beginCell()
         .storeUint(698983191, 32) // subwallet_id | We consider this further
-        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Transaction expiration time, +60 = 1 minute
+        .storeUint(Math.floor(Date.now() / 1e3) + 60, 32) // Message expiration time, +60 = 1 minute
         .storeUint(seqno, 32) // store seqno
-        .storeUint(3, 8) // store mode of our internal transaction
+        .storeUint(3, 8) // store mode of our internal message
         .storeRef(internalMessage); // store our internalMessage as a reference
 
     let signature = sign(toSign.endCell().hash(), keyPair.secretKey); // get the hash of our message to wallet smart contract and sign it to get signature

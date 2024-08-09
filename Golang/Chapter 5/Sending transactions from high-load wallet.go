@@ -6,6 +6,12 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"fmt"
+	"log"
+	"math/big"
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/tl"
@@ -13,16 +19,11 @@ import (
 	"github.com/xssnick/tonutils-go/ton"
 	"github.com/xssnick/tonutils-go/tvm/cell"
 	"golang.org/x/crypto/pbkdf2"
-	"log"
-	"math/big"
-	"math/rand"
-	"strings"
-	"time"
 )
 
 func main() {
 	var internalMessages []*cell.Cell
-	wallletAddress := address.MustParseAddr("put your wallet address from which you deployed high-load wallet")
+	walletAddress := address.MustParseAddr("put your wallet address from which you deployed high-load wallet")
 
 	for i := 0; i < 12; i++ {
 		comment := fmt.Sprintf("Hello, TON! #%d", i)
@@ -33,7 +34,7 @@ func main() {
 
 		internalMessage := cell.BeginCell().
 			MustStoreUInt(0x18, 6). // bounce
-			MustStoreAddr(wallletAddress).
+			MustStoreAddr(walletAddress).
 			MustStoreBigCoins(tlb.MustFromTON("0.001").NanoTON()).
 			MustStoreUInt(0, 1+4+4+64+32).
 			MustStoreBoolBit(false).           // We do not have State Init
@@ -42,7 +43,7 @@ func main() {
 			EndCell()
 
 		messageData := cell.BeginCell().
-			MustStoreUInt(3, 8). // transaction mode
+			MustStoreUInt(3, 8). // message mode
 			MustStoreRef(internalMessage).
 			EndCell()
 

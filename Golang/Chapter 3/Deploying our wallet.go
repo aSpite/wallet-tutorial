@@ -6,6 +6,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/base64"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/tl"
@@ -14,9 +18,6 @@ import (
 	"github.com/xssnick/tonutils-go/ton/wallet"
 	"github.com/xssnick/tonutils-go/tvm/cell"
 	"golang.org/x/crypto/pbkdf2"
-	"log"
-	"strings"
-	"time"
 )
 
 func main() {
@@ -77,7 +78,7 @@ func main() {
 		MustStoreRef(internalMessageBody).
 		EndCell()
 
-	// transaction for our wallet
+	// message for our wallet
 	toSign := cell.BeginCell().
 		MustStoreUInt(subWallet, 32).
 		MustStoreUInt(uint64(time.Now().UTC().Unix()+60), 32).
@@ -92,7 +93,7 @@ func main() {
 		EndCell()
 
 	externalMessage := cell.BeginCell().
-		MustStoreUInt(0b10, 2). // indicate that it is an incoming external transaction
+		MustStoreUInt(0b10, 2). // indicate that it is an incoming external message
 		MustStoreUInt(0, 2).    // src -> addr_none
 		MustStoreAddr(contractAddress).
 		MustStoreCoins(0).       // Import fee

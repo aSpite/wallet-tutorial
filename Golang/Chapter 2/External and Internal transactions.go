@@ -6,6 +6,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/base64"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/tl"
@@ -13,9 +17,6 @@ import (
 	"github.com/xssnick/tonutils-go/ton"
 	"github.com/xssnick/tonutils-go/tvm/cell"
 	"golang.org/x/crypto/pbkdf2"
-	"log"
-	"strings"
-	"time"
 )
 
 func main() {
@@ -76,9 +77,9 @@ func main() {
 
 	toSign := cell.BeginCell().
 		MustStoreUInt(698983191, 32).                          // subwallet_id | We consider this further
-		MustStoreUInt(uint64(time.Now().UTC().Unix()+60), 32). // Transaction expiration time, +60 = 1 minute
+		MustStoreUInt(uint64(time.Now().UTC().Unix()+60), 32). // Message expiration time, +60 = 1 minute
 		MustStoreUInt(seqno.Uint64(), 32).                     // store seqno
-		MustStoreUInt(uint64(3), 8).                           // store mode of our internal transaction
+		MustStoreUInt(uint64(3), 8).                           // store mode of our internal message
 		MustStoreRef(internalMessage)                          // store our internalMessage as a reference
 
 	signature := ed25519.Sign(privateKey, toSign.EndCell().Hash()) // get the hash of our message to wallet smart contract and sign it to get signature

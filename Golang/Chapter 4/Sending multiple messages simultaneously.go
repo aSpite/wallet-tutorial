@@ -5,6 +5,10 @@ import (
 	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/sha512"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/xssnick/tonutils-go/address"
 	"github.com/xssnick/tonutils-go/liteclient"
 	"github.com/xssnick/tonutils-go/tl"
@@ -12,9 +16,6 @@ import (
 	"github.com/xssnick/tonutils-go/ton"
 	"github.com/xssnick/tonutils-go/tvm/cell"
 	"golang.org/x/crypto/pbkdf2"
-	"log"
-	"strings"
-	"time"
 )
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 	internalMessagesComment := [4]string{
 		"Hello, TON! #1",
 		"Hello, TON! #2",
-		"", // Let's leave the third transaction without comment
+		"", // Let's leave the third message without comment
 		"Hello, TON! #4",
 	}
 	destinationAddresses := [4]string{
@@ -107,13 +108,13 @@ func main() {
 
 	toSign := cell.BeginCell().
 		MustStoreUInt(698983191, 32).                          // subwallet_id | We consider this further
-		MustStoreUInt(uint64(time.Now().UTC().Unix()+60), 32). // transaction expiration time, +60 = 1 minute
+		MustStoreUInt(uint64(time.Now().UTC().Unix()+60), 32). // message expiration time, +60 = 1 minute
 		MustStoreUInt(seqno.Uint64(), 32)                      // store seqno
 	// Do not forget that if we use Wallet V4, we need to add .MustStoreUInt(0, 8)
 
 	for i := 0; i < len(internalMessages); i++ {
 		internalMessage := internalMessages[i]
-		toSign.MustStoreUInt(3, 8)           // store mode of our internal transaction
+		toSign.MustStoreUInt(3, 8)           // store mode of our internal message
 		toSign.MustStoreRef(internalMessage) // store our internalMessage as a reference
 	}
 

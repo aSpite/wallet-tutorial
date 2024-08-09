@@ -42,11 +42,11 @@ async function main() {
         .storeUint(698983191, 32) // subwallet_id
         .storeUint(finalQueryID, 64)
         // Here we create our own method that will save the 
-        // transaction mode and a reference to the transaction
+        // message mode and a reference to the message
         .storeDict(dictionary, Dictionary.Keys.Int(16), {
             serialize: (src, buidler) => {
-                buidler.storeUint(3, 8); // save transaction mode, mode = 3
-                buidler.storeRef(src); // save transaction as reference
+                buidler.storeUint(3, 8); // save message mode, mode = 3
+                buidler.storeRef(src); // save message as reference
             },
             // We won't actually use this, but this method 
             // will help to read our dictionary that we saved
@@ -72,7 +72,7 @@ async function main() {
         .endCell();
 
     const externalMessage = beginCell()
-        .storeUint(0b10, 2) // indicate that it is an incoming external transaction
+        .storeUint(0b10, 2) // indicate that it is an incoming external message
         .storeUint(0, 2) // src -> addr_none
         .storeAddress(highloadWalletAddress)
         .storeCoins(0) // Import fee
